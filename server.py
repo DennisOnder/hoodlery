@@ -1,7 +1,7 @@
+import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-import os
 
 # Init app
 app = Flask(__name__)
@@ -24,7 +24,6 @@ class Product(db.Model):
     desc = db.Column(db.String(200))
     price = db.Column(db.Float)
     qty = db.Column(db.Integer)
-    
     def __init__(self, name, desc, price, qty):
         self.name = name
         self.desc = desc
