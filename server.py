@@ -33,11 +33,76 @@ class Product(db.Model):
 # Product Schema
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'price', 'desc', 'qty')
+        fields = ('id', 'name', 'desc', 'price', 'qty')
 
 # Initialize Schema
 product_schema = ProductSchema(strict=True)
 products_schema = ProductSchema(strict=True, many=True)
+
+# Routes
+
+# METHOD: GET
+# ROUTE:  /products
+# ACCESS: PUBLIC
+# DESC:   Get all products
+@app.route('/products', methods=['GET'])
+def get_products():
+    products = Product.query.all()
+    result = products_schema.dump(products)
+    return products_schema.jsonify(result)
+
+# METHOD: GET
+# ROUTE:  /products/<id>
+# ACCESS: PUBLIC
+# DESC:   Get single product via ID
+@app.route('/products/<id>', methods=['GET'])
+def get_product(id):
+    product = Product.query.get(id)
+    return product_schema.jsonify(product)
+
+# METHOD: POST
+# ROUTE:  /products
+# ACCESS: PRIVATE
+# DESC:   Add a new product
+@app.route('/products', methods=['POST'])
+def add_product():
+    name = request.json['name']
+    desc = request.json['desc']
+    price = request.json['price']
+    qty = request.json['qty']
+    new_product = Product(name, desc, price, qty)
+    db.session.add(new_product)
+    db.session.commit()
+    return product_schema.jsonify(new_product)
+
+# METHOD: PUT
+# ROUTE:  /products/<id>
+# ACCESS: PRIVATE
+# DESC:   Edit a product
+@app.route('/products/<id>', methods=['DELETE'])
+def edit_product(id):
+    product = Product.query.get(id)
+    name = request.json['name']
+    desc = request.json['desc']
+    price = request.json['price']
+    qty = request.json['qty']
+    product.name = name
+    product.desc = desc
+    product.price = price
+    product.qty = qty
+    db.session.commit()
+    return product_schema.jsonify(product)
+
+# METHOD: DELETE
+# ROUTE:  /products/<id>
+# ACCESS: PRIVATE
+# DESC:   Delete a product
+@app.route('/products/<id>')
+def delete_product(id):
+    product = Product.query.get(id)
+    db.session.remove(product)
+    db.session.commit()
+    return product_schema.jsonify(product)
 
 # Run server
 if __name__ == '__main__':
