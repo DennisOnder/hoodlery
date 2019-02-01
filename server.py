@@ -69,6 +69,14 @@ user_schema = UserSchema(strict=True)
 def root():
     return app.send_static_file('index.html')
 
+# METHOD: None
+# ROUTE:  Any
+# ACCESS: PUBLIC
+# DESC:   404 Handler
+@app.errorhandler(404)
+def page_not_found(e):
+    return app.send_static_file('404.html')
+
 # METHOD: GET
 # ROUTE:  /products
 # ACCESS: PUBLIC
