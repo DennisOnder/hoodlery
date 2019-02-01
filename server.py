@@ -2,9 +2,10 @@ import os
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Init app
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Database
@@ -30,16 +31,43 @@ class Product(db.Model):
         self.price = price
         self.qty = qty
 
+# User Class/Model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    firstName = db.Column(db.String(100))
+    lastName = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+    password = db.Column(db.String(100))
+    def __init__(self, firstName, lastName, email, password):
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.password = password
+
 # Product Schema
 class ProductSchema(ma.Schema):
     class Meta:
         fields = ('id', 'name', 'desc', 'price', 'qty')
 
+# User Schema
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'firstName', 'lastName', 'email', 'password')
+
 # Initialize Schema
 product_schema = ProductSchema(strict=True)
 products_schema = ProductSchema(strict=True, many=True)
+user_schema = UserSchema(strict=True)
 
 # Routes
+
+# METHOD: GET
+# ROUTE:  /
+# ACCESS: PUBLIC
+# DESC:   Root
+@app.route('/', methods=['GET'])
+def root():
+    return app.send_static_file('index.html')
 
 # METHOD: GET
 # ROUTE:  /products
@@ -79,7 +107,7 @@ def add_product():
 # ROUTE:  /products/<id>
 # ACCESS: PRIVATE
 # DESC:   Edit a product
-@app.route('/products/<id>', methods=['DELETE'])
+@app.route('/products/<id>', methods=['PUT'])
 def edit_product(id):
     product = Product.query.get(id)
     name = request.json['name']
@@ -97,12 +125,42 @@ def edit_product(id):
 # ROUTE:  /products/<id>
 # ACCESS: PRIVATE
 # DESC:   Delete a product
-@app.route('/products/<id>')
+@app.route('/products/<id>', methods=['DELETE'])
 def delete_product(id):
     product = Product.query.get(id)
     db.session.remove(product)
     db.session.commit()
     return product_schema.jsonify(product)
+
+# METHOD: POST
+# ROUTE:  /register
+# ACCESS: PUBLIC
+# DESC:   Register a new user
+@app.route('/register', methods=['POST'])
+def register_user():
+    firstName = request.json['firstName']
+    lastName = request.json['lastName']
+    email = request.json['email']
+    password = generate_password_hash(request.json['password'])
+    new_user = User(firstName, lastName, email, password)
+    db.session.add(new_user)
+    db.session.commit()
+    return user_schema.jsonify(new_user)
+
+# METHOD: POST
+# ROUTE:  /login
+# ACCESS: PUBLIC
+# DESC:   Login a new user
+@app.route('/login', methods=['POST'])
+def login_user():
+    user = User.query.filter_by(email = request.json['email']).first()
+    if user:
+        if check_password_hash(user.password, request.json['password']) == True:
+            return user_schema.jsonify(user)
+        else:
+            return 'Incorrect Password.'    
+    else:
+        return 'User does not exist.'
 
 # Run server
 if __name__ == '__main__':
