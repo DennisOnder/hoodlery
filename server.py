@@ -59,7 +59,7 @@ product_schema = ProductSchema(strict=True)
 products_schema = ProductSchema(strict=True, many=True)
 user_schema = UserSchema(strict=True)
 
-# Routes
+# File serving routes
 
 # METHOD: GET
 # ROUTE:  /
@@ -69,6 +69,30 @@ user_schema = UserSchema(strict=True)
 def root():
     return app.send_static_file('index.html')
 
+# METHOD: GET
+# ROUTE:  /login
+# ACCESS: PUBLIC
+# DESC:   Serve login page
+@app.route('/login', methods=['GET'])
+def serve_login():
+    return app.send_static_file('login.html')
+
+# METHOD: GET
+# ROUTE:  /register
+# ACCESS: PUBLIC
+# DESC:   Serve register page
+@app.route('/register', methods=['GET'])
+def serve_register():
+    return app.send_static_file('register.html')
+
+# METHOD: GET
+# ROUTE:  /catalogue
+# ACCESS: PUBLIC
+# DESC:   Serve catalogue page
+@app.route('/catalogue', methods=['GET'])
+def serve_catalogue():
+    return app.send_static_file('catalogue.html')
+
 # METHOD: None
 # ROUTE:  Any
 # ACCESS: PUBLIC
@@ -76,6 +100,9 @@ def root():
 @app.errorhandler(404)
 def page_not_found(e):
     return app.send_static_file('404.html')
+
+
+# Routes
 
 # METHOD: GET
 # ROUTE:  /products
